@@ -2,18 +2,19 @@ package com.betrybe.agrix.ebytr.staff.controller.dto;
 
 import com.betrybe.agrix.ebytr.staff.entity.Crop;
 import java.time.LocalDate;
-import java.util.List;
 
 /**
  * The type Crop dto.
  */
 public record CropDto(
-    Long id,
-    String name,
-    Double plantedArea,
-    LocalDate plantedDate,
-    LocalDate harvestDate,
-    Long farmId) {
+        Long id,
+        String name,
+        Double plantedArea,
+        LocalDate plantedDate,
+        LocalDate harvestDate,
+        Long farmId
+) {
+
   /**
    * From entity crop dto.
    *
@@ -22,12 +23,12 @@ public record CropDto(
    */
   public static CropDto fromEntity(Crop crop) {
     return new CropDto(
-        crop.getId(),
-        crop.getName(),
-        crop.getPlantedArea(),
-        crop.getPlantedDate(),
-        crop.getHarvestDate(),
-        crop.getFarmId()
+            crop.getId(),
+            crop.getName(),
+            crop.getPlantedArea(),
+            crop.getPlantedDate(),
+            crop.getHarvestDate(),
+            crop.getFarm().getId()
     );
   }
 }

@@ -13,6 +13,10 @@ public record FertilizerCreationDto(String name, String brand, String compositio
    * @return the fertilizer
    */
   public Fertilizer toEntity() {
-    return new Fertilizer(name, brand, composition);
+    Fertilizer fertilizer = new Fertilizer();
+    fertilizer.setName(name);
+    fertilizer.setBrand(brand);
+    fertilizer.setComposition(composition);
+    return fertilizer;
   }
 }

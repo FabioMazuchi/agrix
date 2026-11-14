@@ -37,35 +37,29 @@ public class JwtFilter extends OncePerRequestFilter {
   }
 
   @Override
-  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-      FilterChain filterChain) throws ServletException, IOException {
-    // (1) tentamos extrair o token
+  protected void doFilterInternal(
+          HttpServletRequest request,
+          HttpServletResponse response,
+          FilterChain filterChain) throws ServletException, IOException {
+
     Optional<String> token = extractToken(request);
 
-    // (2) verificamos se ele existe
     if (token.isPresent()) {
-      // (3) se existir, validamos o token
       String subject = tokenService.validateToken(token.get());
-
-      // (4) se o ‘token’ for válido (não houve exceção), encontramos a pessoa associada
       UserDetails userDetails = personService.loadUserByUsername(subject);
 
-      // (5) informamos o Spring Secutity que a pessoa está autenticada
-      UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-          userDetails, null, userDetails.getAuthorities());
-      SecurityContextHolder.getContext().setAuthentication(authentication);
+      UsernamePasswordAuthenticationToken userAuthentication =
+              new UsernamePasswordAuthenticationToken(
+                      userDetails, null, userDetails.getAuthorities());
+
+      SecurityContextHolder.getContext().setAuthentication(userAuthentication);
     }
-    // (6) continuamos com a cadeia de filtros de qualquer forma
     filterChain.doFilter(request, response);
   }
 
   private Optional<String> extractToken(HttpServletRequest request) {
-    String authHeader = request.getHeader("Authorization");
+    Optional<String> authHeader = Optional.ofNullable(request.getHeader("Authorization"));
 
-    if (authHeader == null) {
-      return Optional.empty();
-    }
-
-    return Optional.of(authHeader.replace("Bearer ", ""));
+    return authHeader.map(s -> s.replace("Bearer ", ""));
   }
 }

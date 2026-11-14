@@ -69,15 +69,16 @@ public class PersonService implements UserDetailsService {
    * @return the person
    */
   public Person create(Person person) {
-    String hashedPassword = new BCryptPasswordEncoder()
-        .encode(person.getPassword());
+    String hashedPassword = new BCryptPasswordEncoder().encode(person.getPassword());
+
     person.setPassword(hashedPassword);
+
     return personRepository.save(person);
   }
 
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
     return personRepository.findByUsername(username)
-        .orElseThrow(() -> new UsernameNotFoundException(username));
+            .orElseThrow(() -> new UsernameNotFoundException(username));
   }
 }

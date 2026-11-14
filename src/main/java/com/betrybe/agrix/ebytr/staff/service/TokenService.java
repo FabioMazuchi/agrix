@@ -24,6 +24,10 @@ public class TokenService {
     this.algorithm = Algorithm.HMAC256(secret);
   }
 
+  private Instant generateExpiration() {
+    return Instant.now().plus(2, ChronoUnit.HOURS);
+  }
+
   /**
    * Generate token string.
    *
@@ -32,13 +36,9 @@ public class TokenService {
    */
   public String generateToken(String username) {
     return JWT.create()
-        .withSubject(username)
-        .withExpiresAt(generateExpiration())
-        .sign(algorithm);
-  }
-
-  private Instant generateExpiration() {
-    return Instant.now().plus(2, ChronoUnit.HOURS);
+            .withSubject(username)
+            .withExpiresAt(generateExpiration())
+            .sign(algorithm);
   }
 
   /**
@@ -48,6 +48,9 @@ public class TokenService {
    * @return the string
    */
   public String validateToken(String token) {
-    return JWT.require(algorithm).build().verify(token).getSubject();
+    return JWT.require(algorithm)
+            .build()
+            .verify(token)
+            .getSubject();
   }
 }

@@ -4,8 +4,7 @@ import com.betrybe.agrix.ebytr.staff.controller.dto.CropCreationDto;
 import com.betrybe.agrix.ebytr.staff.controller.dto.CropDto;
 import com.betrybe.agrix.ebytr.staff.controller.dto.FarmCreationDto;
 import com.betrybe.agrix.ebytr.staff.controller.dto.FarmDto;
-import com.betrybe.agrix.ebytr.staff.entity.Farm;
-import com.betrybe.agrix.ebytr.staff.service.CropService;
+import com.betrybe.agrix.ebytr.staff.exception.FarmNotFoundException;
 import com.betrybe.agrix.ebytr.staff.service.FarmService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,14 +18,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+
 /**
  * The type Farm controller.
  */
 @RestController
-@RequestMapping(value = "/farms")
+@RequestMapping("/farms")
 public class FarmController {
+
   private final FarmService farmService;
-  private final CropService cropService;
 
   /**
    * Instantiates a new Farm controller.
@@ -34,9 +34,8 @@ public class FarmController {
    * @param farmService the farm service
    */
   @Autowired
-  public FarmController(FarmService farmService, CropService cropService) {
+  public FarmController(FarmService farmService) {
     this.farmService = farmService;
-    this.cropService = cropService;
   }
 
   /**
@@ -45,55 +44,69 @@ public class FarmController {
    * @param farmCreationDto the farm creation dto
    * @return the farm dto
    */
+  // // // ENTIDADES -> Farm // // //
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public FarmDto createFarm(@RequestBody FarmCreationDto farmCreationDto) {
     return FarmDto.fromEntity(
-        farmService.create(farmCreationDto.toEntity())
+            farmService.create(farmCreationDto.toEntity())
     );
+  }
+
+  /**
+   * Find all farms list.
+   *
+   * @return the list
+   */
+  @GetMapping
+  @Secured({"ADMIN", "MANAGER", "USER"})
+  public List<FarmDto> findAllFarms() {
+    return farmService.findAll().stream()
+            .map(FarmDto::fromEntity).toList();
+  }
+
+  /**
+   * Find farms by id farm dto.
+   *
+   * @param farmId the farm id
+   * @return the farm dto
+   * @throws FarmNotFoundException the farm not found exception
+   */
+  @GetMapping("/{farmId}")
+  @ResponseStatus(HttpStatus.OK)
+  public FarmDto findFarmsById(@PathVariable Long farmId) throws FarmNotFoundException {
+    return FarmDto.fromEntity(farmService.findById(farmId));
   }
 
   /**
    * Create crop crop dto.
    *
-   * @param cropCreationDto the crop body dto
-   * @param farmId      the farm id
+   * @param farmId  the farm id
+   * @param cropDto the crop dto
    * @return the crop dto
+   * @throws FarmNotFoundException the farm not found exception
    */
-  @PostMapping("{farmId}/crops")
+  // // // ENTIDADES -> Farm E Crop // // //
+  @PostMapping("/{farmId}/crops")
   @ResponseStatus(HttpStatus.CREATED)
   public CropDto createCrop(
-      @RequestBody CropCreationDto cropCreationDto, @PathVariable Long farmId) {
-    return CropDto.fromEntity(farmService.create(cropCreationDto, farmId));
+          @PathVariable Long farmId,
+          @RequestBody CropCreationDto cropDto) throws FarmNotFoundException {
+    return CropDto.fromEntity(
+            farmService.createCrop(farmId, cropDto.toEntity())
+    );
   }
 
   /**
-   * Gets all farms.
+   * Find crops by farm id list.
    *
-   * @return the all farms
+   * @param farmId the farm id
+   * @return the list
+   * @throws FarmNotFoundException the farm not found exception
    */
-  @GetMapping
-  @Secured({"ROLE_USER", "ROLE_MANAGER", "ROLE_ADMIN"})
-  public List<FarmDto> getAllFarms() {
-    List<Farm> allFarms = farmService.findAll();
-    return allFarms.stream().map(FarmDto::fromEntity).toList();
-  }
-
-  /**
-   * Gets farm.
-   *
-   * @param id the id
-   * @return the farm
-   */
-  @GetMapping("/{id}")
-  @ResponseStatus(HttpStatus.OK)
-  public FarmDto getFarm(@PathVariable Long id) {
-    return FarmDto.fromEntity(farmService.findById(id));
-  }
-
-  @GetMapping("/{farmId}/crops")
-  public List<CropDto> getAllByFarmId(@PathVariable Long farmId) {
-    return cropService.getAllByFarmId(farmId).stream()
-        .map(CropDto::fromEntity).toList();
+  @GetMapping("{farmId}/crops")
+  public List<CropDto> findCropsByFarmId(@PathVariable Long farmId) throws FarmNotFoundException {
+    return farmService.findCropsByFarmId(farmId)
+            .stream().map(CropDto::fromEntity).toList();
   }
 }

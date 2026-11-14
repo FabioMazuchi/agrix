@@ -1,6 +1,5 @@
 package com.betrybe.agrix.ebytr.staff.service;
 
-import com.betrybe.agrix.ebytr.staff.controller.dto.CropCreationDto;
 import com.betrybe.agrix.ebytr.staff.entity.Crop;
 import com.betrybe.agrix.ebytr.staff.entity.Farm;
 import com.betrybe.agrix.ebytr.staff.exception.FarmNotFoundException;
@@ -15,6 +14,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class FarmService {
+
   private final FarmRepository farmRepository;
   private final CropRepository cropRepository;
 
@@ -36,28 +36,9 @@ public class FarmService {
    * @param farm the farm
    * @return the farm
    */
+  // // // ENTIDADES -> Farm // // //
   public Farm create(Farm farm) {
     return farmRepository.save(farm);
-  }
-
-  /**
-   * Find all list.
-   *
-   * @param cropCreationDto the crop body dto
-   * @param farmId      the farm id
-   * @return the list
-   */
-  public Crop create(CropCreationDto cropCreationDto, Long farmId) {
-    Farm findFarm = this.findById(farmId);
-
-    Crop crop = new Crop();
-    crop.setName(cropCreationDto.name());
-    crop.setPlantedArea(cropCreationDto.plantedArea());
-    crop.setPlantedDate(cropCreationDto.plantedDate());
-    crop.setHarvestDate(cropCreationDto.harvestDate());
-    crop.setFarmId(findFarm.getId());
-
-    return cropRepository.save(crop);
   }
 
   /**
@@ -70,12 +51,42 @@ public class FarmService {
   }
 
   /**
-   * Gets farm.
+   * Find by id farm.
    *
    * @param id the id
    * @return the farm
+   * @throws FarmNotFoundException the farm not found exception
    */
-  public Farm findById(Long id) {
-    return farmRepository.findById(id).orElseThrow(FarmNotFoundException::new);
+  public Farm findById(Long id) throws FarmNotFoundException {
+    return farmRepository.findById(id)
+            .orElseThrow(FarmNotFoundException::new);
+  }
+
+  /**
+   * Create crop.
+   *
+   * @param farmId the farm id
+   * @param crop   the crop
+   * @return the crop
+   * @throws FarmNotFoundException the farm not found exception
+   */
+  // // // ENTIDADES -> Farm E Crop // // //
+  public Crop createCrop(Long farmId, Crop crop) throws FarmNotFoundException {
+    Farm farm = findById(farmId);
+    crop.setFarm(farm);
+
+    return cropRepository.save(crop);
+  }
+
+  /**
+   * Find crops by farm id list.
+   *
+   * @param farmId the farm id
+   * @return the list
+   * @throws FarmNotFoundException the farm not found exception
+   */
+  public List<Crop> findCropsByFarmId(Long farmId) throws FarmNotFoundException {
+    Farm farm = findById(farmId);
+    return farm.getCrops();
   }
 }

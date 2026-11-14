@@ -1,13 +1,12 @@
 package com.betrybe.agrix.ebytr.staff.service;
 
+import com.betrybe.agrix.ebytr.staff.controller.dto.CropDto;
 import com.betrybe.agrix.ebytr.staff.entity.Crop;
 import com.betrybe.agrix.ebytr.staff.entity.Fertilizer;
 import com.betrybe.agrix.ebytr.staff.exception.CropNotFoundException;
-import com.betrybe.agrix.ebytr.staff.exception.FarmNotFoundException;
 import com.betrybe.agrix.ebytr.staff.repository.CropRepository;
-import com.betrybe.agrix.ebytr.staff.repository.FarmRepository;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
 import org.springframework.stereotype.Service;
 
 /**
@@ -15,82 +14,60 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class CropService {
+
   private final CropRepository cropRepository;
-  private final FarmRepository farmRepository;
-  private final FertilizerService fertilizerService;
 
   /**
    * Instantiates a new Crop service.
    *
-   * @param cropRepository    the crop repository
-   * @param farmRepository    the farm repository
-   * @param fertilizerService the fertilizer service
+   * @param cropRepository the crop repository
    */
-  public CropService(CropRepository cropRepository, FarmRepository farmRepository,
-      FertilizerService fertilizerService) {
+  public CropService(CropRepository cropRepository) {
     this.cropRepository = cropRepository;
-    this.farmRepository = farmRepository;
-    this.fertilizerService = fertilizerService;
   }
 
   /**
-   * Gets all by farm id.
+   * Find all crops list.
    *
-   * @param farmId the farm id
-   * @return the all by farm id
+   * @return the list
    */
-  public List<Crop> getAllByFarmId(Long farmId) {
-    farmRepository.findById(farmId).orElseThrow(FarmNotFoundException::new);
-
-    return cropRepository.findAll().stream()
-        .filter((crop -> Objects.equals(crop.getFarmId(), farmId))).toList();
-  }
-
-  /**
-   * Gets all.
-   *
-   * @return the all
-   */
-  public List<Crop> getAll() {
+  public List<Crop> findAllCrops() {
     return cropRepository.findAll();
   }
 
   /**
-   * Find by id crop.
+   * Find crop by id crop.
    *
    * @param id the id
    * @return the crop
+   * @throws CropNotFoundException the crop not found exception
    */
-  public Crop findById(Long id) {
-    return cropRepository.findById(id).orElseThrow(CropNotFoundException::new);
+  public Crop findCropById(Long id) throws CropNotFoundException {
+    return cropRepository.findById(id)
+            .orElseThrow(CropNotFoundException::new);
+
   }
 
   /**
-   * Find crop by date list.
+   * Fin by harvest date between list.
    *
    * @param start the start
    * @param end   the end
    * @return the list
    */
-  public List<Crop> findCropByDate(String start, String end) {
-    return cropRepository.findCropByDate(start, end);
+  public List<CropDto> finByHarvestDateBetween(LocalDate start, LocalDate end) {
+    return cropRepository.findByHarvestDateBetween(start, end);
   }
 
   /**
-   * Add crop fertilizer crop.
+   * Fin fertilizers by crop id list.
    *
-   * @param cropId       the crop id
-   * @param fertilizerId the fertilizer id
-   * @return the crop
+   * @param cropId the crop id
+   * @return the list
+   * @throws CropNotFoundException the crop not found exception
    */
-  public Crop addCropFertilizer(Long cropId, Long fertilizerId) {
-    Crop crop = findById(cropId);
-    Fertilizer fertilizer = fertilizerService.findById(fertilizerId);
-    crop.getFertilizers().add(fertilizer);
-    return cropRepository.save(crop);
-  }
-
-  public List<Fertilizer> getFertilizersByCropId(Long cropId) {
-    return findById(cropId).getFertilizers();
+  public List<Fertilizer> finFertilizersByCropId(Long cropId) throws CropNotFoundException {
+    Crop crop = findCropById(cropId);
+    return crop.getFertilizers();
   }
 }

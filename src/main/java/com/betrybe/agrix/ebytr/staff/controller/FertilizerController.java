@@ -2,7 +2,7 @@ package com.betrybe.agrix.ebytr.staff.controller;
 
 import com.betrybe.agrix.ebytr.staff.controller.dto.FertilizerCreationDto;
 import com.betrybe.agrix.ebytr.staff.controller.dto.FertilizerDto;
-import com.betrybe.agrix.ebytr.staff.entity.Fertilizer;
+import com.betrybe.agrix.ebytr.staff.exception.FertilizerNotFoundException;
 import com.betrybe.agrix.ebytr.staff.service.FertilizerService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,12 +16,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+
 /**
  * The type Fertilizer controller.
  */
 @RestController
-@RequestMapping(value = "/fertilizers")
+@RequestMapping("fertilizers")
 public class FertilizerController {
+
   private final FertilizerService fertilizerService;
 
   /**
@@ -43,24 +45,33 @@ public class FertilizerController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public FertilizerDto createFertilizer(@RequestBody FertilizerCreationDto fertilizerCreationDto) {
-    return FertilizerDto.fromEntity(fertilizerService.create(fertilizerCreationDto.toEntity()));
+    return FertilizerDto.fromEntity(
+            fertilizerService.createFertilizer(fertilizerCreationDto.toEntity()));
   }
 
   /**
-   * Gets all fertilizers.
+   * Find all fertilizers list.
    *
-   * @return the all fertilizers
+   * @return the list
    */
   @GetMapping
-  @Secured("ROLE_ADMIN")
-  public List<FertilizerDto> getAllFertilizers() {
-    List<Fertilizer> fertilizers = fertilizerService.findAll();
-    return fertilizers.stream().map(FertilizerDto::fromEntity).toList();
+  @Secured("ADMIN")
+  public List<FertilizerDto> findAllFertilizers() {
+    return fertilizerService.getFertilizers()
+            .stream().map(FertilizerDto::fromEntity).toList();
   }
 
+  /**
+   * Find fertilizer by id fertilizer dto.
+   *
+   * @param fertilizerId the fertilizer id
+   * @return the fertilizer dto
+   * @throws FertilizerNotFoundException the fertilizer not found exception
+   */
   @GetMapping("/{fertilizerId}")
-  @ResponseStatus(HttpStatus.OK)
-  public FertilizerDto getFertilizerById(@PathVariable Long fertilizerId) {
-    return FertilizerDto.fromEntity(fertilizerService.findById(fertilizerId));
+  public FertilizerDto findFertilizerById(@PathVariable Long fertilizerId)
+          throws FertilizerNotFoundException {
+    return FertilizerDto.fromEntity(
+            fertilizerService.getFertilizerById(fertilizerId));
   }
 }

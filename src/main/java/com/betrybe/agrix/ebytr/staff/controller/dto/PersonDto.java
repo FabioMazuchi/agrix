@@ -16,9 +16,8 @@ public record PersonDto(Long id, String username, Role role) {
    */
   public static PersonDto fromEntity(Person person) {
     return new PersonDto(
-        person.getId(),
-        person.getUsername(),
-        person.getRole()
-    );
+            person.getId(),
+            person.getUsername(),
+            person.getRole());
   }
 }
