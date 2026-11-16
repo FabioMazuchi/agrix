@@ -6,6 +6,9 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * The type Config swagger.
+ */
 @Configuration
 @OpenAPIDefinition(security = {@SecurityRequirement(name = "bearerAuth")})
 @SecurityScheme(
