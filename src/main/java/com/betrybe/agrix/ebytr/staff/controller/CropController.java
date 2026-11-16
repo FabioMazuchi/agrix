@@ -42,8 +42,7 @@ public class CropController {
    * @return the list
    */
   @GetMapping
-//  @Secured({"ADMIN", "MANAGER"})
-  @CrossOrigin(origins = "http://localhost:3000")
+  @Secured({"ADMIN", "MANAGER"})
   public List<CropDto> findAllCrops() {
     return cropService.findAllCrops()
             .stream().map(CropDto::fromEntity).toList();
