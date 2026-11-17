@@ -42,18 +42,52 @@ public class JwtFilter extends OncePerRequestFilter {
           HttpServletResponse response,
           FilterChain filterChain) throws ServletException, IOException {
 
-    Optional<String> token = extractToken(request);
+    String authorizationHeader = request.getHeader("Authorization");
 
-    if (token.isPresent()) {
-      String subject = tokenService.validateToken(token.get());
-      UserDetails userDetails = personService.loadUserByUsername(subject);
+    if (authorizationHeader == null
+            || !authorizationHeader.startsWith("Bearer ")) {
+      filterChain.doFilter(request, response);
+      return;
+    }
+
+    String token = authorizationHeader.substring(7).trim();
+
+    if (token.isEmpty()) {
+      response.sendError(
+              HttpServletResponse.SC_UNAUTHORIZED,
+              "Token não informado"
+      );
+      return;
+    }
+
+    try {
+      String subject = tokenService.validateToken(token);
+
+      UserDetails userDetails =
+              personService.loadUserByUsername(subject);
 
       UsernamePasswordAuthenticationToken userAuthentication =
               new UsernamePasswordAuthenticationToken(
-                      userDetails, null, userDetails.getAuthorities());
+                      userDetails,
+                      null,
+                      userDetails.getAuthorities()
+              );
 
-      SecurityContextHolder.getContext().setAuthentication(userAuthentication);
+      SecurityContextHolder.getContext()
+              .setAuthentication(userAuthentication);
+
+    } catch (com.auth0.jwt.exceptions.JWTVerificationException
+             | org.springframework.security.core.userdetails.UsernameNotFoundException ex) {
+
+      SecurityContextHolder.clearContext();
+
+      response.sendError(
+              HttpServletResponse.SC_UNAUTHORIZED,
+              "Token inválido, expirado ou usuário não encontrado"
+      );
+      return;
     }
+
     filterChain.doFilter(request, response);
   }
 
