@@ -5,6 +5,8 @@ import com.betrybe.agrix.ebytr.staff.entity.Farm;
 import com.betrybe.agrix.ebytr.staff.exception.FarmNotFoundException;
 import com.betrybe.agrix.ebytr.staff.repository.CropRepository;
 import com.betrybe.agrix.ebytr.staff.repository.FarmRepository;
+
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -72,7 +74,11 @@ public class FarmService {
    */
   // // // ENTIDADES -> Farm E Crop // // //
   public Crop createCrop(Long farmId, Crop crop) throws FarmNotFoundException {
+    LocalDate date = LocalDate.now();
     Farm farm = findById(farmId);
+
+    crop.setPlantedDate(date);
+    crop.setHarvestDate(date);
     crop.setFarm(farm);
 
     return cropRepository.save(crop);
