@@ -1,19 +1,11 @@
-FROM maven:3.9.9-eclipse-temurin-17 AS build
+FROM maven:3-openjdk-17 as build-image
+WORKDIR /to-build-app
+COPY . .
+RUN mvn dependency:go-offline
+RUN mvn clean package
 
-WORKDIR /app
-
-COPY pom.xml .
-COPY src ./src
-
-RUN mvn -B clean package -DskipTests
-
-FROM eclipse-temurin:17-jre
-
-WORKDIR /app
-
-COPY --from=build /app/target/agrix-1.0-SNAPSHOT.jar app.jar
-
+# 2º ESTÁGIO
+FROM eclipse-temurin:17-jre-alpine
+COPY --from=build-image /to-build-app/target/*.jar /app/app.jar
 EXPOSE 8080
-
-ENTRYPOINT ["sh", "-c", "java -Dserver.port=${PORT:-8080} -jar app.jar"]
-
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
