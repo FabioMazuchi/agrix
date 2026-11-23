@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/farms")
-@CrossOrigin(origins = "http://agrix-production-f0183ff4.up.railway.app")
+@CrossOrigin(origins = "https://agrix-production-f0183ff4.up.railway.app")
 public class FarmController {
 
   private final FarmService farmService;
