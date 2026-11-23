@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/crops")
+@CrossOrigin(origins = "http://localhost:3000")
 public class CropController {
 
   private final CropService cropService;
