@@ -12,18 +12,28 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class CorsConfiguration implements WebMvcConfigurer {
 
-  @Value("${app.cors.allowed-origins:http://localhost:3000}")
-  private String allowedOrigins;
+  //  @Value("${app.cors.allowed-origins:http://localhost:3000}")
+  //  private String allowedOrigins;
+  //
+  //  @Override
+  //  public void addCorsMappings(CorsRegistry registry) {
+  //    String[] origins = Arrays.stream(allowedOrigins.split(","))
+  //            .map(String::trim)
+  //            .filter(origin -> !origin.isEmpty())
+  //            .toArray(String[]::new);
+  //
+  //    registry.addMapping("/**")
+  //            .allowedOrigins(origins)
+  //            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD");
+  //  }
 
   @Override
   public void addCorsMappings(CorsRegistry registry) {
-    String[] origins = Arrays.stream(allowedOrigins.split(","))
-            .map(String::trim)
-            .filter(origin -> !origin.isEmpty())
-            .toArray(String[]::new);
-
     registry.addMapping("/**")
-            .allowedOrigins(origins)
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD");
+            .allowedOrigins("http://localhost:3000")
+            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "TRACE", "CONNECT");
+    registry.addMapping("/buslines/**")
+            .allowedOrigins("http://localhost:4001")
+            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "TRACE", "CONNECT");
   }
 }
