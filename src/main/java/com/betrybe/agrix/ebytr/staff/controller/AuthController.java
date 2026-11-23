@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "https://agrix-production-f0183ff4.up.railway.app")
+@CrossOrigin(origins = "*")
 public class AuthController {
 
   private final AuthenticationManager authenticationManager;
