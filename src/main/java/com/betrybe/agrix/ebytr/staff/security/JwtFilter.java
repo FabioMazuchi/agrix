@@ -1,5 +1,6 @@
 package com.betrybe.agrix.ebytr.staff.security;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.betrybe.agrix.ebytr.staff.service.PersonService;
 import com.betrybe.agrix.ebytr.staff.service.TokenService;
 import jakarta.servlet.FilterChain;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -45,21 +47,53 @@ public class JwtFilter extends OncePerRequestFilter {
     Optional<String> token = extractToken(request);
 
     if (token.isPresent()) {
-      String subject = tokenService.validateToken(token.get());
-      UserDetails userDetails = personService.loadUserByUsername(subject);
+      try {
+        String subject = tokenService.validateToken(token.get());
 
-      UsernamePasswordAuthenticationToken userAuthentication =
-              new UsernamePasswordAuthenticationToken(
-                      userDetails, null, userDetails.getAuthorities());
+        UserDetails userDetails =
+                personService.loadUserByUsername(subject);
 
-      SecurityContextHolder.getContext().setAuthentication(userAuthentication);
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+
+        SecurityContextHolder.getContext()
+                .setAuthentication(authentication);
+
+      } catch (JWTVerificationException | UsernameNotFoundException ex) {
+
+        SecurityContextHolder.clearContext();
+
+        response.sendError(
+                HttpServletResponse.SC_UNAUTHORIZED,
+                "Token inválido ou expirado"
+        );
+
+        return;
+      }
     }
+
     filterChain.doFilter(request, response);
   }
 
-  private Optional<String> extractToken(HttpServletRequest request) {
-    Optional<String> authHeader = Optional.ofNullable(request.getHeader("Authorization"));
 
-    return authHeader.map(s -> s.replace("Bearer ", ""));
+  private Optional<String> extractToken(HttpServletRequest request) {
+    String authorizationHeader = request.getHeader("Authorization");
+
+    if (authorizationHeader == null
+            || !authorizationHeader.startsWith("Bearer ")) {
+      return Optional.empty();
+    }
+
+    String token = authorizationHeader.substring(7).trim();
+
+    if (token.isEmpty()) {
+      return Optional.empty();
+    }
+
+    return Optional.of(token);
   }
 }
