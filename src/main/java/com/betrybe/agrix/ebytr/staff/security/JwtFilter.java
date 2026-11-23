@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,6 +24,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
  */
 @Component
 public class JwtFilter extends OncePerRequestFilter {
+  private static final Logger logger =
+          LoggerFactory.getLogger(JwtFilter.class);
 
   private final TokenService tokenService;
   private final PersonService personService;
@@ -63,13 +67,35 @@ public class JwtFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext()
                 .setAuthentication(authentication);
 
-      } catch (JWTVerificationException | UsernameNotFoundException ex) {
+      } catch (JWTVerificationException ex) {
 
         SecurityContextHolder.clearContext();
+
+        logger.warn(
+                "Falha na validação do JWT. Tipo: {}. Mensagem: {}",
+                ex.getClass().getSimpleName(),
+                ex.getMessage()
+        );
 
         response.sendError(
                 HttpServletResponse.SC_UNAUTHORIZED,
                 "Token inválido ou expirado"
+        );
+
+        return;
+
+      } catch (UsernameNotFoundException ex) {
+
+        SecurityContextHolder.clearContext();
+
+        logger.warn(
+                "JWT válido, mas o usuário associado não foi encontrado. Tipo: {}",
+                ex.getClass().getSimpleName()
+        );
+
+        response.sendError(
+                HttpServletResponse.SC_UNAUTHORIZED,
+                "Usuário associado ao token não encontrado"
         );
 
         return;
@@ -78,7 +104,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
     filterChain.doFilter(request, response);
   }
-
 
   private Optional<String> extractToken(HttpServletRequest request) {
     String authorizationHeader = request.getHeader("Authorization");
